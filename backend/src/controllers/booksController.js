@@ -1,113 +1,172 @@
-import mongoose from "mongoose";
-import { Book } from "../models/Book.js";
+// import mongoose from "mongoose";
+// import { Book } from "../models/Book.js";
 
-export async function getAllBooks(req, res) {
-  try {
-    const books = await Book.find({});
+// export async function getAllBooks(req, res) {
+//   try {
+//     const books = await Book.find({});
 
-    return res.status(200).json({
-      count: books.length,
-      data: books,
-    });
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
-  }
-}
-
-// export function getAllBooks(req, res) {
-//   res.status(200).send("You just fetched the books");
+//     return res.status(200).json({
+//       count: books.length,
+//       data: books,
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).send({ message: "Server error"});
+//   }
 // }
 
-export async function createBook(req, res) {
-  try {
-    if (!req.body.title || !req.body.author || !req.body.publishYear) {
-      return res
-        .status(400)
-        .send({
-          message: "Send all required fields: title, author, publishYear",
-        });
-    }
-    const newBook = {
-      title: req.body.title,
-      author: req.body.author,
-      publishYear: req.body.publishYear,
-    };
-    const book = await Book.create(newBook);
-    return res.status(201).send(book);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ message: error.message });
+
+
+// export async function createBook(req, res) {
+//   try {
+//     const { title, author, publishYear } = req.body;
+
+//     if (!title || !author || !publishYear) {
+//       return res.status(400).json({
+//         message: "Send all required fields: title, author, publishYear"
+//       });
+//     }
+
+//     const book = await Book.create({ title, author, publishYear });
+
+//     return res.status(201).json(book);
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// }
+
+
+// export async function updateBook(req, res) {
+//   try {
+//     const { title, author, publishYear } = req.body;
+
+//     if (!title || !author || !publishYear) {
+//       return res.status(400).json({
+//         message: "Send all required fields: title, author, publishYear"
+//       });
+//     }
+
+//     const { id } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "Invalid ID format" });
+//     }
+
+//     const result = await Book.findByIdAndUpdate(
+//       id,
+//       { title, author, publishYear },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!result) {
+//       return res.status(404).json({ message: "Book not found" });
+//     }
+
+//     return res.status(200).json({ message: "Book updated successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// }
+
+// export async function deleteBook(req, res) {
+//   try {
+//     const { id } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "Invalid ID format" });
+//     }
+
+//     const result = await Book.findByIdAndDelete(id);
+
+//     if (!result) {
+//       return res.status(404).json({ message: "Book not found" });
+//     }
+
+//     return res.status(200).json({ message: "Book deleted successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// }
+
+
+// export async function getBook(req, res) {
+//   try {
+//     const { id } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "Invalid ID format" });
+//     }
+
+//     const book = await Book.findById(id);
+
+//     if (!book) {
+//       return res.status(404).json({ message: "Book not found" });
+//     }
+
+//     return res.status(200).json(book);
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// }
+
+import { Book } from "../models/Book.js";
+import { validateRequiredFields } from "../utils/validateRequiredFields.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+
+export const getAllBooks = asyncHandler(async (req, res) => {
+  const books = await Book.find({});
+  res.status(200).json({ count: books.length, data: books });
+});
+
+export const createBook = asyncHandler(async (req, res) => {
+  if (!validateRequiredFields(req.body, ["title", "author", "publishYear"])) {
+    return res.status(400).json({
+      message: "Send all required fields: title, author, publishYear"
+    });
   }
-}
 
-export async function updateBook(req, res) {
-  try {
-    if (!req.body.title || !req.body.author || !req.body.publishYear) {
-      return res
-        .status(400)
-        .send({
-          message: "Send all required fields: title, author, publishYear",
-        });
-    }
+  const book = await Book.create(req.body);
+  res.status(201).json(book);
+});
 
-    const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
 
-    const result = await Book.findByIdAndUpdate(id, req.body);
-
-    if (!result) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    return res.status(200).send({ message: "Book updated successfully" });
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+export const updateBook = asyncHandler(async (req, res) => {
+  if (!validateRequiredFields(req.body, ["title", "author", "publishYear"])) {
+    return res.status(400).json({
+      message: "Send all required fields: title, author, publishYear"
+    });
   }
-}
 
-export async function deleteBook(req, res) {
-  try {
-    const { id } = req.params;
+  const updated = await Book.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  );
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
+  if (!updated) return res.status(404).json({ message: "Book not found" });
 
-    const result = await Book.findByIdAndDelete(id);
+  res.status(200).json({ message: "Book updated successfully" });
+});
 
-    if (!result) {
-      return res.status(404).json({ message: "Book not found" });
-    }
 
-    return res.status(200).send({ message: "Book deleted successfully" });
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
-  }
-}
 
-export async function getBook(req, res) {
-  try {
-    const { id } = req.params;
+export const deleteBook = asyncHandler(async (req, res) => {
+  const deleted = await Book.findByIdAndDelete(req.params.id);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
+  if (!deleted) return res.status(404).json({ message: "Book not found" });
 
-    const book = await Book.findById(id);
+  res.status(200).json({ message: "Book deleted successfully" });
+});
 
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
-    }
+export const getBook = asyncHandler(async (req, res) => {
+  const book = await Book.findById(req.params.id);
 
-    return res.status(200).json(book);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
-  }
-}
+  if (!book) return res.status(404).json({ message: "Book not found" });
+
+  res.status(200).json(book);
+});

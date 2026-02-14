@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import BackButtom from '../components/BackButtom';
 import Spinner from '../components/Spinner';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
+import toast from 'react-hot-toast';
 
 
 const CreateBook = () => {
@@ -12,17 +12,16 @@ const CreateBook = () => {
   const [publishYear, setPublishYear] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
 
   const handleSaveBook = async () => {
     const data = { title, author, publishYear };
     setLoading(true);
     try {
       await axios.post('http://localhost:4000/books', data);
-      enqueueSnackbar('Book Created Successfully', {variant: 'success'})
+      toast.success('Book Created Successfully');
       navigate('/');
     } catch (err) {
-      enqueueSnackbar('Error', {variant: 'error'});
+      toast.error('Error');
       console.log(err);
     } finally {
       setLoading(false);

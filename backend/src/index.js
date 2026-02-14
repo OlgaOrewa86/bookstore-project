@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import bookRoutes from "./routes/booksRoutes.js";
 import cors from "cors";
 import { connectBD } from "./config/db.js";
+import { rateLimiter } from "./middleware/rateLimiter.js";
 
 dotenv.config();
 
@@ -10,7 +11,7 @@ const app = express();
 
 const PORT = process.env.PORT || 4000;
 
-connectBD();
+
 
 //Middleware for parsing request body
 app.use(express.json());
@@ -28,9 +29,14 @@ app.use(cors());
 //     })
 // )
 
+app.use(rateLimiter({ windowMs: 60000, limit: 100 }));
+
 app.use("/books", bookRoutes);
 
-app.listen(PORT, () => {
+connectBD().then(() => {
+  app.listen(PORT, () => {
   console.log(`App is listening to port: ${PORT}`);
-});
+  });
+})
+
 
